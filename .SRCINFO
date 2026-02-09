@@ -16,7 +16,7 @@ pkgbase = fvtt-desktop-client-bin
 	depends = libxrandr
 	depends = mesa
 	options = !strip
-	source = app.AppImage::https://github.com/JeidoUran/fvtt-player-client/releases/download/v1.13.0/FVTT-Desktop-Client_1.13.0_linux-x86_64.AppImage
+	source = app.AppImage::https://github.com/JeidoUran/fvtt-player-client/releases/download/1.13.0/FVTT-Desktop-Client_1.13.0_linux-x86_64.AppImage
 	sha256sums = ace2e86fd85d579b1a1317ac8951b8e8f12ecbe016ec7bbc03d90b07d03fd556
 
 pkgname = fvtt-desktop-client-bin
