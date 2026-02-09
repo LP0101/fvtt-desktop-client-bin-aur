@@ -60,6 +60,10 @@ jobs:
           sudo -u builder updpkgsums
           sudo -u builder makepkg --printsrcinfo > .SRCINFO
 
+      - name: Mark repository as safe
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+
+
       - name: Push to AUR
         if: steps.check_version.outputs.should_deploy == 'true'
         uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
