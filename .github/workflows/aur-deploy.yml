@@ -32,12 +32,17 @@ jobs:
           echo "Latest found: $LATEST_TAG"
           echo "Current in repo: $CURRENT_VER"
           
-          if [ "$LATEST_TAG" != "$CURRENT_VER" ] || [ "${{ github.event.inputs.forcedeploy }}" == "true" ]; then
-            echo "Deployment triggered (Update: $([ "$LATEST_TAG" != "$CURRENT_VER" ] && echo "Yes" || echo "No"), Force: ${{ github.event.inputs.forcedeploy }})"
+          if [ "$LATEST_TAG" != "$CURRENT_VER" ]; then
+            echo "New version detected. Will reset pkgrel to 1."
             echo "should_deploy=true" >> $GITHUB_OUTPUT
             echo "new_ver=$LATEST_TAG" >> $GITHUB_OUTPUT
+            echo "reset_rel=true" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.inputs.forcedeploy }}" == "true" ]; then
+            echo "Force deploy requested for existing version. Preserving pkgrel."
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "new_ver=$CURRENT_VER" >> $GITHUB_OUTPUT
+            echo "reset_rel=false" >> $GITHUB_OUTPUT
           else
-            echo "No update needed and forcedeploy is false."
             echo "should_deploy=false" >> $GITHUB_OUTPUT
           fi
 
@@ -45,6 +50,10 @@ jobs:
         if: steps.check_version.outputs.should_deploy == 'true'
         run: |
           sed -i "s/^pkgver=.*/pkgver=${{ steps.check_version.outputs.new_ver }}/" PKGBUILD
+          
+          if [ "${{ steps.check_version.outputs.reset_rel }}" == "true" ]; then
+            sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
+          fi
           
           useradd -m builder
           chown -R builder:builder .
