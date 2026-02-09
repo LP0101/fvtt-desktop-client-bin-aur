@@ -53,9 +53,10 @@ jobs:
 
       - name: Push to AUR
         if: steps.check_version.outputs.should_deploy == 'true'
-        uses: KSXGitHub/github-actions-deploy-aur@v3
+        uses: KSXGitHub/github-actions-deploy-aur@v4
         with:
           pkgname: fvtt-desktop-client-bin
+          pkgbuild: PKGBUILD
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: "Update/Force push to v${{ steps.check_version.outputs.new_ver }}"
           ssh_keyscan_types: rsa,ed25519
