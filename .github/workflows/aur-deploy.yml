@@ -59,7 +59,7 @@ jobs:
           pkgbuild: PKGBUILD
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_username: "lp0101"
-          commit_email: ${{ env.AUR_COMMIT_EMAIL }}
+          commit_email: ${{ vars.AUR_COMMIT_EMAIL }}
           commit_message: "Update/Force push to v${{ steps.check_version.outputs.new_ver }}"
           ssh_keyscan_types: rsa,ed25519
 
