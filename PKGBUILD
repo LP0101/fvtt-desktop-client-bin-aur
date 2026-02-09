@@ -1,7 +1,7 @@
 # Maintainer: Luca Popesco <luca@popesco.io>
 pkgname=fvtt-desktop-client-bin
 _appname=vtt-desktop-client
-pkgver=1.13.0
+pkgver=1.12.0
 pkgrel=1
 pkgdesc="Desktop client for Foundry VTT (JeidoUran Fork)"
 arch=('x86_64')
