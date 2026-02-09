@@ -2,8 +2,14 @@ name: Update AUR Package
 
 on:
   schedule:
-    - cron: '0 0 * * *' 
-  workflow_dispatch:  
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force update and push to AUR even if version hasn't changed'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   check-and-deploy:
@@ -21,51 +27,46 @@ jobs:
       - name: Check for New Version
         id: check_version
         run: |
-          # 1. Get latest tag from GitHub API
-          # We use JeidoUran as discussed
           LATEST_TAG=$(curl -s https://api.github.com/repos/JeidoUran/fvtt-player-client/releases/latest | jq -r .tag_name | sed 's/v//')
-          
-          # 2. Extract current version from PKGBUILD
           CURRENT_VER=$(grep -P -o '(?<=^pkgver=).*' PKGBUILD)
           
           echo "Latest found: $LATEST_TAG"
           echo "Current in repo: $CURRENT_VER"
           
-          if [ "$LATEST_TAG" == "$CURRENT_VER" ]; then
-            echo "No update needed."
-            echo "update_available=false" >> $GITHUB_OUTPUT
-          else
-            echo "New version detected!"
-            echo "update_available=true" >> $GITHUB_OUTPUT
+          if [ "$LATEST_TAG" != "$CURRENT_VER" ] || [ "${{ github.event.inputs.force_deploy }}" == "true" ]; then
+            echo "Deployment triggered (Update: $([ "$LATEST_TAG" != "$CURRENT_VER" ] && echo "Yes" || echo "No"), Force: ${{ github.event.inputs.force_deploy }})"
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
             echo "new_ver=$LATEST_TAG" >> $GITHUB_OUTPUT
+          else
+            echo "No update needed and force_deploy is false."
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Update PKGBUILD and .SRCINFO
-        if: steps.check_version.outputs.update_available == 'true'
+        if: steps.check_version.outputs.should_deploy == 'true'
         run: |
-          # Update the version string
           sed -i "s/^pkgver=.*/pkgver=${{ steps.check_version.outputs.new_ver }}/" PKGBUILD
           
-          # updpkgsums needs to run as a non-root user
           useradd -m builder
           chown -R builder:builder .
           sudo -u builder updpkgsums
           sudo -u builder makepkg --printsrcinfo > .SRCINFO
 
       - name: Push to AUR
-        if: steps.check_version.outputs.update_available == 'true'
+        if: steps.check_version.outputs.should_deploy == 'true'
         uses: KSXGitHub/github-actions-deploy-aur@v3
         with:
           pkgname: fvtt-desktop-client-bin
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: "Update to v${{ steps.check_version.outputs.new_ver }}"
+          commit_message: "Update/Force push to v${{ steps.check_version.outputs.new_ver }}"
           ssh_keyscan_types: rsa,ed25519
 
       - name: Commit changes back to GitHub
-        if: steps.check_version.outputs.update_available == 'true'
+        if: steps.check_version.outputs.should_deploy == 'true'
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add PKGBUILD .SRCINFO
-          git commit -m "Automated version bump to ${{ steps.check_version.outputs.new_ver }}"
+          # Use || true to prevent failure if there are no changes to the file (e.g. force push with same version)
+          git commit -m "Automated update to ${{ steps.check_version.outputs.new_ver }}" || true
           git push
