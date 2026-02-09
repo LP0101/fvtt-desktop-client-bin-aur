@@ -5,11 +5,10 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch:
     inputs:
-      force_deploy:
-        description: 'Force update and push to AUR even if version hasn't changed'
+      forcedeploy:
+        description: "Force update and push to AUR even if version hasn't changed"
         required: false
-        type: boolean
-        default: false
+        default: 'false'
 
 jobs:
   check-and-deploy:
@@ -33,12 +32,12 @@ jobs:
           echo "Latest found: $LATEST_TAG"
           echo "Current in repo: $CURRENT_VER"
           
-          if [ "$LATEST_TAG" != "$CURRENT_VER" ] || [ "${{ github.event.inputs.force_deploy }}" == "true" ]; then
-            echo "Deployment triggered (Update: $([ "$LATEST_TAG" != "$CURRENT_VER" ] && echo "Yes" || echo "No"), Force: ${{ github.event.inputs.force_deploy }})"
+          if [ "$LATEST_TAG" != "$CURRENT_VER" ] || [ "${{ github.event.inputs.forcedeploy }}" == "true" ]; then
+            echo "Deployment triggered (Update: $([ "$LATEST_TAG" != "$CURRENT_VER" ] && echo "Yes" || echo "No"), Force: ${{ github.event.inputs.forcedeploy }})"
             echo "should_deploy=true" >> $GITHUB_OUTPUT
             echo "new_ver=$LATEST_TAG" >> $GITHUB_OUTPUT
           else
-            echo "No update needed and force_deploy is false."
+            echo "No update needed and forcedeploy is false."
             echo "should_deploy=false" >> $GITHUB_OUTPUT
           fi
 
