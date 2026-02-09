@@ -14,7 +14,7 @@ options=('!strip')
 _filename="FVTT-Desktop-Client_${pkgver}_linux-x86_64.AppImage"
 
 # Programmatic source
-source=("app.AppImage::${url}/releases/download/v${pkgver}/${_filename}")
+source=("app.AppImage::${url}/releases/download/${pkgver}/${_filename}")
 sha256sums=('ace2e86fd85d579b1a1317ac8951b8e8f12ecbe016ec7bbc03d90b07d03fd556')
 
 prepare() {
